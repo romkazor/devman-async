@@ -16,6 +16,8 @@ pip install -r requirements.txt
 
 You can use this arguments:
 
+--help, -h: Show help message
+
 --log: On/off logging
 
 --delay: Set delay for response in seconds (float)
