@@ -11,6 +11,6 @@
     FILL_SCREEN = 2    # Screen stars fill percentage: 1% or 2% is optimal
 
 ###### Screenshots:
-![spaceship-1](https://raw.githubusercontent.com/romkazor/devman-async/master/Exercise1/screenshots/SpaceShip-1.PNG)
+![spaceship-1](https://raw.githubusercontent.com/romkazor/devman-async/master/Exercise1-2/screenshots/SpaceShip-1.PNG)
 
-![spaceship-2](https://raw.githubusercontent.com/romkazor/devman-async/master/Exercise1/screenshots/SpaceShip-2.PNG)
+![spaceship-2](https://raw.githubusercontent.com/romkazor/devman-async/master/Exercise1-2/screenshots/SpaceShip-2.PNG)
