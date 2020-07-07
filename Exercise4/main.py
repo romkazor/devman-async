@@ -1,54 +1,15 @@
 import argparse
 import asyncio
-from datetime import datetime
 import os
 
-import aiofiles
-from aiofiles.threadpool.text import AsyncTextIOWrapper
-from async_timeout import timeout
+from chat_reader import start_chat_reader
 
 
-async def write_log(aiofile: AsyncTextIOWrapper, message: str) -> None:
-    """Write log to specific file with datetime"""
-    now = datetime.now().strftime("%d.%m.%y %H:%M")
-    await aiofile.write(f'[{now}] {message}\n')
+async def main(host: str, port: int, log: str):
 
-
-async def get_streams(host: str, port: int) -> (asyncio.StreamReader, asyncio.StreamWriter):
-    """Open connection and get objects: StreamReader and StreamWriter"""
-    reader, writer = None, None
-    try:
-        async with timeout(1.5):
-            reader, writer = await asyncio.open_connection(host, port)
-    except asyncio.TimeoutError:
-        print(f'Timeout connection to {host}:{port}')
-    finally:
-        return reader, writer
-
-
-async def start_chat_reader(host: str, port: int, log: str):
-    """Start asyncio socket connection"""
-    reader, writer = await get_streams(host, port)
-
-    if reader and writer:
-        async with aiofiles.open(log, mode='a', buffering=1) as aiofile:
-            message = f'Connection established to {host}:{port}'
-            print(message)
-            await write_log(aiofile, message)
-
-            while True:
-                try:
-                    data = await reader.readline()
-                    message = data.decode('utf-8').strip()
-                    print(message)
-                    await write_log(aiofile, message)
-
-                except asyncio.CancelledError:
-                    writer.close()
-                    break
-
-                except UnicodeDecodeError:
-                    pass
+    await asyncio.gather(
+        start_chat_reader(host, port, log),
+    )
 
 
 if __name__ == '__main__':
@@ -66,6 +27,6 @@ if __name__ == '__main__':
     server_log = os.getenv("SERV_LOG", args.log)
 
     try:
-        asyncio.run(start_chat_reader(server_host, server_port, server_log))
+        asyncio.run(main(server_host, server_port, server_log))
     except KeyboardInterrupt:
         print('Manually closed')
