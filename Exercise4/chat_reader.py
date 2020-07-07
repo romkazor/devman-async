@@ -18,6 +18,8 @@ async def get_streams(host: str, port: int) -> (asyncio.StreamReader, asyncio.St
     try:
         async with timeout(1.5):
             reader, writer = await asyncio.open_connection(host, port)
+            message = f'Connection established to {host}:{port}'
+            print(message)
     except asyncio.TimeoutError:
         print(f'Timeout connection to {host}:{port}')
     finally:
@@ -30,9 +32,6 @@ async def start_chat_reader(host: str, port: int, log: str):
 
     if reader and writer:
         async with aiofiles.open(log, mode='a', buffering=1) as aiofile:
-            message = f'Connection established to {host}:{port}'
-            print(message)
-            await write_log(aiofile, message)
 
             while True:
                 try:
