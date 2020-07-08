@@ -9,14 +9,14 @@ from aiohttp import web
 
 async def get_chunks(proc: asyncio.subprocess, response: web.StreamResponse, size: int, delay: float) -> None:
     """Get chunks of archive and return to response."""
-    number_chunk = 0
+    chunk_count = 0
     download_complete = True
     try:
         while True:
             archive_chunk = await proc.stdout.read(n=1024 * size)
             if archive_chunk:
-                number_chunk += 1
-                logging.debug(f'Sending archive chunk {number_chunk}')
+                chunk_count += 1
+                logging.debug(f'Sending archive chunk {chunk_count}')
                 await response.write(archive_chunk)
                 await asyncio.sleep(delay)
             else:
