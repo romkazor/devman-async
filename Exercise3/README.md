@@ -23,7 +23,7 @@ You can use this arguments:
 --delay: Set delay for response in seconds (float)
 --dir:   Set directory of photos, default "/tmp/photos" (Required and absolute path)
 --port:  Set server port, default 8080
---size:  Set chunk size, default 100 (KB)
+--size:  Set chunk size in KB, default 100 KB
 ```
 Example:
 

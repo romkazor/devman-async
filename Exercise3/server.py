@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import os
 import logging
+from itertools import count
 
 import aiofiles
 from aiohttp import web
@@ -9,25 +10,24 @@ from aiohttp import web
 
 async def get_chunks(proc: asyncio.subprocess, response: web.StreamResponse, size: int, delay: float) -> None:
     """Get chunks of archive and return to response."""
-    chunk_count = 0
-    download_complete = True
+    download_complete = False
     try:
-        while True:
+        for chunk_count in count(start=1):
             archive_chunk = await proc.stdout.read(n=1024 * size)
 
             if not archive_chunk:
+                download_complete = True
                 await response.write_eof()
                 break
 
-            chunk_count += 1
             logging.debug(f'Sending archive chunk {chunk_count}')
             await response.write(archive_chunk)
             await asyncio.sleep(delay)
 
     except asyncio.CancelledError:
         logging.debug('Download was interrupted')
-        download_complete = False
         raise
+
     finally:
         if download_complete:
             logging.debug('Download Complete!')
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     parser.add_argument("--delay", type=float, default=0, help="Set delay for response")
     parser.add_argument("--dir", type=str, help="Set directory of photos", default="/tmp/photos")
     parser.add_argument("--port", type=int, default=8080, help="Set server port")
-    parser.add_argument("--size", type=int, default=100, help="Set chunk size")
+    parser.add_argument("--size", type=int, default=100, help="Set chunk size in KB")
     args = parser.parse_args()
 
     app = web.Application()
