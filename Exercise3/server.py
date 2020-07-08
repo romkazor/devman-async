@@ -8,7 +8,7 @@ from aiohttp import web
 
 
 async def get_chunks(proc: asyncio.subprocess, response: web.StreamResponse, size: int, delay: float) -> None:
-    """Get chunks of archive and return to response"""
+    """Get chunks of archive and return to response."""
     number_chunk = 0
     download_complete = True
     try:
@@ -35,7 +35,7 @@ async def get_chunks(proc: asyncio.subprocess, response: web.StreamResponse, siz
 
 
 async def archivate(request: web.Request) -> web.StreamResponse:
-    """Archivate dir and stream response result"""
+    """Archivate dir and stream response result."""
     serv_delay = request.app.get('serv_delay')
     serv_dir = request.app.get('serv_dir')
     serv_size = request.app.get('serv_size')
