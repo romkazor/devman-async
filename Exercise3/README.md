@@ -16,18 +16,15 @@ pip install -r requirements.txt
 
 You can use this arguments:
 
+
+```
 --help, -h: Show help message
-
---log: On/off logging
-
+--log:   On/off logging
 --delay: Set delay for response in seconds (float)
-
---dir: Set directory of photos, default "/tmp/photos" (Required and absolute path)
-
---port: Set server port, default 8080
-
---size: Set chunk size, default 100 (KB)
-
+--dir:   Set directory of photos, default "/tmp/photos" (Required and absolute path)
+--port:  Set server port, default 8080
+--size:  Set chunk size, default 100 (KB)
+```
 Example:
 
 ```
