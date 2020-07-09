@@ -1,4 +1,5 @@
 import argparse
+import configargparse
 import asyncio
 import os
 import logging
@@ -74,24 +75,25 @@ async def handle_index_page(request: web.Request):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(prog='Microservice')
-    parser.formatter_class = argparse.ArgumentDefaultsHelpFormatter
-    parser.add_argument("--log", action="store_true", help="On/off logging")
-    parser.add_argument("--delay", type=float, default=0, help="Set delay for response")
-    parser.add_argument("--dir", type=str, help="Set directory of photos", default="/tmp/photos")
-    parser.add_argument("--port", type=int, default=8080, help="Set server port")
+    parser = configargparse.ArgParser()
+    parser.add_argument("--log", action="store_true", default=False, help="On/off logging", env_var='SERVER_LOG')
+    parser.add_argument("--delay", type=float, default=0, help="Set delay for response", env_var='SERVER_DELAY')
+    parser.add_argument("--dir", help="Set directory of photos", env_var='SERVER_DIR')
+    parser.add_argument("--port", type=int, default=8080, help="Set server port", env_var='SERVER_PORT')
     parser.add_argument("--size", type=int, default=100, help="Set chunk size in KB")
-    args = parser.parse_args()
+    options = parser.parse_args()
 
     app = web.Application()
-    if str(os.getenv("SERV_LOG", args.log)) in ['1', 'True']:
+
+    if options.log:
         logging.basicConfig(format=u'[%(asctime)s] [%(filename)s] [LINE:%(lineno)d] %(message)s', level=logging.DEBUG)
-    app['serv_delay'] = float(os.getenv("SERV_DELAY", args.delay))
-    app['serv_dir'] = os.getenv("SERV_DIR", args.dir)
-    app['serv_size'] = os.getenv("SERV_SIZE", args.size)
+
+    app['serv_delay'] = options.delay
+    app['serv_dir'] = options.dir
+    app['serv_size'] = options.size
 
     app.add_routes([
         web.get('/', handle_index_page),
         web.get('/archive/{archive_hash}/', archivate),
     ])
-    web.run_app(app, port=os.getenv("SERV_PORT", args.port))
+    web.run_app(app, port=options.port)
