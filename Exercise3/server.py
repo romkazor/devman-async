@@ -1,4 +1,3 @@
-import argparse
 import configargparse
 import asyncio
 import os
@@ -9,7 +8,7 @@ import aiofiles
 from aiohttp import web
 
 
-async def get_chunks(proc: asyncio.subprocess, response: web.StreamResponse, size: int, delay: float) -> None:
+async def send_archive(proc: asyncio.subprocess, response: web.StreamResponse, size: int, delay: float) -> None:
     """Get chunks of archive and return to response."""
     download_complete = False
     try:
@@ -27,14 +26,14 @@ async def get_chunks(proc: asyncio.subprocess, response: web.StreamResponse, siz
 
     except asyncio.CancelledError:
         logging.debug('Download was interrupted')
+        proc.kill()
         raise
 
     finally:
         if download_complete:
             logging.debug('Download Complete!')
-        if proc.returncode:
-            proc.kill()
-            await proc.communicate()
+
+        await proc.communicate()
 
 
 async def archivate(request: web.Request) -> web.StreamResponse:
@@ -45,27 +44,25 @@ async def archivate(request: web.Request) -> web.StreamResponse:
     archive_hash = request.match_info.get('archive_hash')
     full_path = f'{serv_dir}/{archive_hash}'
     path_exist = os.path.exists(f'{serv_dir}/{archive_hash}')
+    cmd = ['zip', '-r', '-', full_path]
 
-    if path_exist:
-        cmd = f"zip -r - *"
-
-        response = web.StreamResponse()
-        response.headers['Content-Disposition'] = f'form-data; filename="photos.zip"'
-        response.headers['Content-Type'] = 'application/zip'
-
-        logging.debug("Started zipping:")
-        proc = await asyncio.create_subprocess_shell(cmd,
-                                                     stdout=asyncio.subprocess.PIPE,
-                                                     stderr=asyncio.subprocess.PIPE,
-                                                     cwd=full_path)
-        await response.prepare(request)
-        await get_chunks(proc, response, serv_size, serv_delay)
-
-        return response
-
-    else:
+    if not path_exist:
         logging.debug(f'Archive or directory {full_path} not found')
         raise web.HTTPNotFound(text='Archive not found or deleted', content_type='text/html')
+
+    response = web.StreamResponse()
+    response.headers['Content-Disposition'] = f'form-data; filename="photos.zip"'
+    response.headers['Content-Type'] = 'application/zip'
+
+    logging.debug("Started zipping:")
+    proc = await asyncio.create_subprocess_exec(*cmd,
+                                                stdout=asyncio.subprocess.PIPE,
+                                                stderr=asyncio.subprocess.PIPE,
+                                                )
+    await response.prepare(request)
+    await send_archive(proc, response, serv_size, serv_delay)
+
+    return response
 
 
 async def handle_index_page(request: web.Request):
@@ -78,7 +75,7 @@ if __name__ == '__main__':
     parser = configargparse.ArgParser()
     parser.add_argument("--log", action="store_true", default=False, help="On/off logging", env_var='SERVER_LOG')
     parser.add_argument("--delay", type=float, default=0, help="Set delay for response", env_var='SERVER_DELAY')
-    parser.add_argument("--dir", help="Set directory of photos", env_var='SERVER_DIR')
+    parser.add_argument("--dir", help="Set directory of photos", default='/tmp/photos', env_var='SERVER_DIR')
     parser.add_argument("--port", type=int, default=8080, help="Set server port", env_var='SERVER_PORT')
     parser.add_argument("--size", type=int, default=100, help="Set chunk size in KB")
     options = parser.parse_args()
