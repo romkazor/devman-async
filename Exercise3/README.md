@@ -1,11 +1,11 @@
 # Microservice for archivate files
 
-The microservice creating archive on the fly by request from the user.
+The microservice creating archive on the fly without create zip file.
 
 
 ## How to install
 
-You need Python version 3.6 and higter.
+You need Python version 3.6 and higher.
 
 ```
 pip install -r requirements.txt
