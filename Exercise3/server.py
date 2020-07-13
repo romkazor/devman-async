@@ -25,26 +25,32 @@ async def send_archive(proc: asyncio.subprocess, response: web.StreamResponse, s
             await asyncio.sleep(delay)
 
     except asyncio.CancelledError:
-        logging.debug('Download was interrupted')
-        proc.kill()
         raise
+
+    except BaseException:
+        pass
 
     finally:
         if download_complete:
             logging.debug('Download Complete!')
+
+        if proc.returncode != 0:
+            logging.debug('Download was interrupted')
+            proc.kill()
 
         await proc.communicate()
 
 
 async def archivate(request: web.Request) -> web.StreamResponse:
     """Archivate dir and stream response result."""
-    serv_delay = request.app.get('serv_delay')
-    serv_dir = request.app.get('serv_dir')
-    serv_size = request.app.get('serv_size')
-    archive_hash = request.match_info.get('archive_hash')
-    full_path = f'{serv_dir}/{archive_hash}'
-    path_exist = os.path.exists(f'{serv_dir}/{archive_hash}')
-    cmd = ['zip', '-r', '-', full_path]
+    server_delay = request.app['server_delay']
+    server_dir = request.app['server_dir']
+    server_size = request.app['server_size']
+    archive_hash = request.match_info['archive_hash']
+    full_path = f'{server_dir}/{archive_hash}'
+    path_exist = os.path.exists(f'{server_dir}/{archive_hash}')
+    print(server_dir, full_path)
+    cmd = ['zip', '-r', '-', archive_hash]
 
     if not path_exist:
         logging.debug(f'Archive or directory {full_path} not found')
@@ -56,11 +62,12 @@ async def archivate(request: web.Request) -> web.StreamResponse:
 
     logging.debug("Started zipping:")
     proc = await asyncio.create_subprocess_exec(*cmd,
+                                                cwd=server_dir,
                                                 stdout=asyncio.subprocess.PIPE,
                                                 stderr=asyncio.subprocess.PIPE,
                                                 )
     await response.prepare(request)
-    await send_archive(proc, response, serv_size, serv_delay)
+    await send_archive(proc, response, server_size, server_delay)
 
     return response
 
@@ -85,9 +92,9 @@ if __name__ == '__main__':
     if options.log:
         logging.basicConfig(format=u'[%(asctime)s] [%(filename)s] [LINE:%(lineno)d] %(message)s', level=logging.DEBUG)
 
-    app['serv_delay'] = options.delay
-    app['serv_dir'] = options.dir
-    app['serv_size'] = options.size
+    app['server_delay'] = options.delay
+    app['server_dir'] = options.dir
+    app['server_size'] = options.size
 
     app.add_routes([
         web.get('/', handle_index_page),
