@@ -16,7 +16,7 @@ async def start_chat_reader(host: str, port: int, log: str):
 
         while True:
             try:
-                message = await read_stream(reader, writer, log=False)
+                message = await read_stream(reader, log=False)
                 await write_log(aiofile, message)
 
             except (UnicodeDecodeError, AttributeError):

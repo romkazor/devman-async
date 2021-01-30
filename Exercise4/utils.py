@@ -1,4 +1,6 @@
 import asyncio
+import logging.handlers
+import os
 from asyncio import StreamReader, StreamWriter
 from datetime import datetime
 from socket import gaierror
@@ -6,6 +8,15 @@ from typing import Tuple, Union
 
 from aiofiles.threadpool.binary import AsyncBufferedIOBase
 from aiofiles.threadpool.text import AsyncTextIOWrapper
+
+
+logging.basicConfig(level=logging.DEBUG,
+                    handlers=[
+                        logging.handlers.WatchedFileHandler(os.path.abspath(__file__ + '/../chat.log')),
+                        logging.StreamHandler()
+                    ])
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 async def write_log(aiofile: Union[AsyncTextIOWrapper, AsyncBufferedIOBase], message: str) -> None:
@@ -34,17 +45,20 @@ async def get_streams(host: str, port: int) -> Tuple[StreamReader, StreamWriter]
             await asyncio.sleep(1)
 
 
-async def read_stream(reader: StreamReader) -> str:
+async def read_stream(reader: StreamReader, log: bool = True) -> str:
     """Reading line from stream."""
 
     try:
         data = await reader.readline()
         message = data.decode('utf-8').strip()
+        if log:
+            logger.debug(message)
 
         return message
 
     except UnicodeDecodeError:
         message = 'null'
+        logger.debug(message)
         return message
 
     except asyncio.CancelledError:
