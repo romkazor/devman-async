@@ -1,4 +1,8 @@
-# Async chat underground
+# Async chat client for minechat
+- Connect to service minechat.dvmn.org
+- Sending messages
+- Logging messages
+- Other
 
 ## Examples:
 
@@ -10,11 +14,11 @@ Optional:
 - `--history` - logfile to save chat history, default: minechat.history
 
 ```
-chat_reader.py --host minechat.dvmn.org --port 5000 --history minechat.history
+python3 chat_reader.py --host minechat.dvmn.org --port 5000 --history minechat.history
 ```
 or
 ```
-chat_reader.py
+python3 chat_reader.py
 ```
 
 ### Write to chat:
@@ -29,5 +33,5 @@ Optional:
 - `--username` - username of new registered user
     
 ```
-chat_writer.py --message 'Hello World'
+python3 chat_writer.py --message 'Hello World'
 ```
